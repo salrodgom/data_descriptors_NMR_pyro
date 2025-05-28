@@ -2,6 +2,8 @@
 # Inputs: POSCAR (VASP) "Sn*_*.POSCAR" files in the folder.
 # Output: COLVAR file
 
+# Dependencies: "plumed", "ase" software installed.
+
 declare -A CV
 function Evaluation {
  if [ $(echo "${n_atoms} < 16" | bc -lq) == 1 ] ; then 
@@ -76,9 +78,11 @@ ENDPLUMED" > plumed.dat
  grep -e 'Zr ' -e 'Sn ' ${name}.pdb | awk '{print $2}' | xargs -n1000 >> index.ndx
  #
  plumed driver --plumed plumed.dat --mf_pdb ${name}.pdb
+ #
  rm -rf index.ndx ${name}.pdb plumed.dat
 }
-
+# Copy temporally the POSCAR files locally in the folder:
+cp structures/*.POSCAR .
 if [ -f COLVAR ] ; then rm -rf COLVAR ; echo "#!" > COLVAR ; fi
 for n_atoms in $(seq 1 1 16 ) ; do
  i=$(printf "%02d" ${n_atoms})
@@ -128,4 +132,5 @@ rm -rf dir_*
 # Modify COLVAR file:
 cat COLVAR | sed 's/\t/ /g' | sed '/#/d' | tr -s ' ' > tmp
 mv tmp COLVAR
+rm *.POSCAR
 exit 0
